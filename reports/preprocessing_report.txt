@@ -1,0 +1,16 @@
+RDD2022 PREPROCESSING REPORT
+============================================================
+
+Training Images : 26869
+Training Labels : 26869
+
+Validation Images : 5758
+Validation Labels : 5758
+
+Testing Images : 5757
+Testing Labels : 5758
+
+Missing Labels : 0
+Missing Images : 0
+Corrupted Images : 0
+Invalid Labels : 0

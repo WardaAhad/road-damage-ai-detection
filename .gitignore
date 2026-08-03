@@ -1,10 +1,6 @@
 # Dataset
 Dataset/
 
-# Training Results
-results/
-reports/
-
 # YOLO
 runs/
 outputs/
