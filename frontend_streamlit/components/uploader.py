@@ -7,61 +7,21 @@ Developer : Warda Ahad
 """
 
 import streamlit as st
-from PIL import Image
 import requests
-import io
 
-from config import (
-    PREDICT_ENDPOINT,
-    ALLOWED_IMAGE_TYPES
-)
+from config import PREDICT_ENDPOINT
 
 
 # ==========================================================
-# Upload Image
-# ==========================================================
-
-def image_uploader():
-
-    st.subheader("📤 Upload Road Image")
-
-    uploaded_file = st.file_uploader(
-        "Choose a road image",
-        type=ALLOWED_IMAGE_TYPES
-    )
-
-    return uploaded_file
-
-
-# ==========================================================
-# Preview Image
-# ==========================================================
-
-def preview_image(uploaded_file):
-
-    if uploaded_file is None:
-        return
-
-    image = Image.open(uploaded_file)
-
-    st.image(
-        image,
-        caption="Uploaded Image",
-        width="stretch"
-    )
-
-
-# ==========================================================
-# Send Image to FastAPI
+# Predict Image
 # ==========================================================
 
 def predict_image(uploaded_file):
 
     if uploaded_file is None:
-
         st.warning("Please upload an image.")
-
         return None
+
 
     files = {
         "file": (
@@ -71,9 +31,10 @@ def predict_image(uploaded_file):
         )
     }
 
+
     try:
 
-        with st.spinner("Detecting Road Damage..."):
+        with st.spinner("🚧 Detecting Road Damage..."):
 
             response = requests.post(
                 PREDICT_ENDPOINT,
@@ -81,63 +42,118 @@ def predict_image(uploaded_file):
                 timeout=120
             )
 
+
+        # ==============================
+        # Debug Response
+        # ==============================
+
+        st.write("### Backend Response")
+
+        st.write(
+            "Status Code:",
+            response.status_code
+        )
+
+
+        st.write("Response Text:")
+
+        st.code(
+            response.text
+        )
+
+
+        # ==============================
+        # Success
+        # ==============================
+
         if response.status_code == 200:
 
-            return response.json()
+            result = response.json()
 
-        st.error("Prediction Failed")
+            return result
+
+
+        else:
+
+            st.error(
+                f"Prediction Failed: {response.status_code}"
+            )
+
+            return None
+
+
+
+    except requests.exceptions.ConnectionError:
+
+        st.error(
+            """
+            ❌ Backend Connection Failed
+
+            Make sure FastAPI backend is running:
+            
+            uvicorn main:app --reload
+            """
+        )
 
         return None
+
+
 
     except Exception as e:
 
-        st.error(f"Connection Error\n\n{e}")
+        st.error(
+            f"Error: {e}"
+        )
 
         return None
 
 
+
 # ==========================================================
-# Predict Button
+# Image Upload UI
 # ==========================================================
 
-def predict_button():
+def image_uploader():
 
-    return st.button(
-        "🚧 Detect Damage",
-        width="stretch"
+    st.subheader("📤 Upload Road Image")
+
+
+    uploaded_file = st.file_uploader(
+        "Choose Road Image",
+        type=[
+            "jpg",
+            "jpeg",
+            "png"
+        ]
     )
 
 
-# ==========================================================
-# Show Prediction Result
-# ==========================================================
-
-def show_prediction(result):
-
-    if result is None:
-
-        return
-
-    st.success("Detection Completed")
-
-    st.json(result)
+    if uploaded_file:
 
 
-# ==========================================================
-# Download Result Image
-# ==========================================================
+        st.image(
+            uploaded_file,
+            caption="Uploaded Image",
+            use_container_width=True
+        )
 
-def download_result(image_bytes):
 
-    st.download_button(
+        if st.button("🚧 Detect Damage"):
 
-        label="📥 Download Result",
 
-        data=image_bytes,
+            result = predict_image(
+                uploaded_file
+            )
 
-        file_name="prediction.jpg",
 
-        mime="image/jpeg",
+            if result:
 
-        width="stretch"
-    )
+
+                st.success(
+                    "Detection Completed Successfully"
+                )
+
+
+                st.json(
+                    result
+                )
