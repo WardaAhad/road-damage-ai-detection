@@ -1,0 +1,20 @@
+# Dataset
+Dataset/
+
+# Training Results
+results/
+reports/
+
+# YOLO
+runs/
+outputs/
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.venv/
+.env

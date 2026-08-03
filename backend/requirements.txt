@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-multipart
+
+torch
+torchvision
+torchaudio
+ultralytics
+
+opencv-python
+Pillow
+
+numpy
+pandas
+
+pyyaml
+requests
