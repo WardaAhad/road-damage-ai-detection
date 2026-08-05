@@ -1,68 +1,282 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
-import shutil
-import os
+"""
+=========================================================
+AI Road Damage Detection System
+FastAPI Backend
 
-from utils.predictor import predict_image
+Developer : Warda Ahad
+=========================================================
+"""
 
-app = FastAPI(
-    title="AI Road Damage Detection API",
-    description="YOLO based Road Damage Detection System",
-    version="1.0"
+
+from pathlib import Path
+
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException
 )
 
-UPLOAD_FOLDER = "uploads"
+from fastapi.responses import FileResponse
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+from fastapi.middleware.cors import CORSMiddleware
 
+
+# =========================================================
+# Backend Imports
+# =========================================================
+
+from backend.config import (
+    APP_NAME,
+    APP_VERSION,
+    API_DESCRIPTION,
+)
+
+from backend.logger import app_logger
+
+from backend.utils import (
+    allowed_file,
+    save_upload,
+)
+
+from backend.predictor import Predictor
+
+from backend.model_loader import model
+
+
+
+# =========================================================
+# FastAPI Application
+# =========================================================
+
+app = FastAPI(
+
+    title=APP_NAME,
+
+    version=APP_VERSION,
+
+    description=API_DESCRIPTION
+
+)
+
+
+
+# =========================================================
+# CORS Configuration
+# =========================================================
+
+app.add_middleware(
+
+    CORSMiddleware,
+
+    allow_origins=["*"],
+
+    allow_credentials=True,
+
+    allow_methods=["*"],
+
+    allow_headers=["*"],
+
+)
+
+
+
+# =========================================================
+# Root API
+# =========================================================
 
 @app.get("/")
-def home():
+
+def root():
+
     return {
-        "message": "AI Road Damage Detection API is Running"
+
+        "message": "AI Road Damage Detection API",
+
+        "version": APP_VERSION,
+
+        "status": "Running"
+
     }
 
 
-# ==============================
-# Health Check API
-# ==============================
+
+# =========================================================
+# Health Check
+# =========================================================
 
 @app.get("/health")
+
 def health():
+
     return {
-        "status": "healthy",
-        "message": "Backend is running"
+
+        "status": "Healthy",
+
+        "model_loaded": model is not None,
+
+        "version": APP_VERSION
+
     }
 
 
+
+# =========================================================
+# Model Information
+# =========================================================
+
+@app.get("/model-info")
+
+def model_info():
+
+    return {
+
+        "model": "YOLOv11",
+
+        "framework": "Ultralytics",
+
+        "version": APP_VERSION
+
+    }
+
+
+
+# =========================================================
+# Image Prediction
+# =========================================================
+
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
 
-    try:
+async def predict(
 
-        file_path = os.path.join(
-            UPLOAD_FOLDER,
-            file.filename
+        file: UploadFile = File(...)
+
+):
+
+    # Check image format
+
+    if not allowed_file(file.filename):
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Unsupported Image Format"
+
         )
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
 
-        result = predict_image(file_path)
+    # Save uploaded image
 
-        return JSONResponse(
-            status_code=200,
-            content={
-                "filename": file.filename,
-                "result": result
-            }
+    image_path = save_upload(file)
+
+
+    app_logger.info(
+
+        f"Image Uploaded : {file.filename}"
+
+    )
+
+
+    # Run YOLO prediction
+
+    prediction = Predictor.predict(
+
+        image_path
+
+    )
+
+
+    return prediction
+
+
+
+# =========================================================
+# Download Detection Result
+# =========================================================
+
+@app.get("/download/{filename}")
+
+def download_result(
+
+        filename: str
+
+):
+
+    path = Path("results") / filename
+
+
+    if not path.exists():
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Result not found"
+
         )
 
-    except Exception as e:
 
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": str(e)
-            }
-        )
+    return FileResponse(path)
+
+
+
+# =========================================================
+# Delete Uploaded Image
+# =========================================================
+
+@app.delete("/delete/{filename}")
+
+def delete_file(
+
+        filename: str
+
+):
+
+    path = Path("uploads") / filename
+
+
+    if path.exists():
+
+        path.unlink()
+
+
+    return {
+
+        "message": "Deleted Successfully"
+
+    }
+
+
+
+# =========================================================
+# Startup Event
+# =========================================================
+
+@app.on_event("startup")
+
+def startup():
+
+
+    app_logger.success(
+
+        "Backend Started Successfully."
+
+    )
+
+
+
+# =========================================================
+# Shutdown Event
+# =========================================================
+
+@app.on_event("shutdown")
+
+def shutdown():
+
+
+    app_logger.info(
+
+        "Backend Stopped."
+
+    )
