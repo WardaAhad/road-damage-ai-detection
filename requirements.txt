@@ -1,12 +1,10 @@
 fastapi
-uvicorn
-streamlit
+uvicorn[standard]
+
+ultralytics
 
 torch
 torchvision
-torchaudio
-
-ultralytics
 
 opencv-python-headless
 Pillow
@@ -14,15 +12,13 @@ Pillow
 numpy
 pandas
 
-matplotlib
-seaborn
-
-scikit-learn
-
-pyyaml
-tqdm
-requests
-
-scikit-image
-albumentations
 python-multipart
+
+python-dotenv
+pydantic
+pydantic-settings
+
+aiofiles
+loguru
+httpx
+orjson
