@@ -1,6 +1,7 @@
 {
   "deploy": {
     "aptPackages": [
+      "libgl1",
       "libxcb1"
     ]
   }
