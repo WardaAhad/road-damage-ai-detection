@@ -1,24 +1,28 @@
-fastapi
-uvicorn[standard]
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
 
-ultralytics
+ultralytics==8.3.189
 
-torch
-torchvision
+torch==2.7.0
+torchvision==0.22.0
 
-opencv-python-headless
-Pillow
+opencv-python-headless==4.12.0.88
+Pillow==11.3.0
 
-numpy
-pandas
+numpy==2.2.6
+pandas==2.3.2
 
-python-multipart
+python-multipart==0.0.20
 
-python-dotenv
-pydantic
-pydantic-settings
+pydantic==2.11.7
+pydantic-settings==2.10.1
 
-aiofiles
-loguru
-httpx
-orjson
+python-dotenv==1.1.1
+
+aiofiles==24.1.0
+
+loguru==0.7.3
+
+httpx==0.28.1
+
+orjson==3.11.3
