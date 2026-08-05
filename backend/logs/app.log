@@ -1,0 +1,55 @@
+2026-08-05 09:03:45 | INFO | Loading YOLOv11 model...
+2026-08-05 09:03:47 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:03:47 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:05:20 | INFO | Image Uploaded : China_Drone_000487.jpg
+2026-08-05 09:05:20 | INFO | Running YOLOv11 prediction...
+2026-08-05 09:05:29 | SUCCESS | Prediction completed
+2026-08-05 09:15:26 | INFO | Backend Stopped.
+2026-08-05 09:15:35 | INFO | Loading YOLOv11 model...
+2026-08-05 09:15:35 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:15:35 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:15:41 | INFO | Backend Stopped.
+2026-08-05 09:15:51 | INFO | Loading YOLOv11 model...
+2026-08-05 09:15:52 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:15:52 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:15:52 | INFO | Backend Stopped.
+2026-08-05 09:15:55 | INFO | Loading YOLOv11 model...
+2026-08-05 09:15:55 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:15:55 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:15:55 | INFO | Backend Stopped.
+2026-08-05 09:15:58 | INFO | Loading YOLOv11 model...
+2026-08-05 09:15:58 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:15:58 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:15:58 | INFO | Backend Stopped.
+2026-08-05 09:16:01 | INFO | Loading YOLOv11 model...
+2026-08-05 09:16:01 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:16:01 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:16:01 | INFO | Backend Stopped.
+2026-08-05 09:16:07 | INFO | Loading YOLOv11 model...
+2026-08-05 09:16:07 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:16:07 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:16:58 | INFO | Loading YOLOv11 model...
+2026-08-05 09:16:58 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:16:58 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:17:39 | INFO | Image Uploaded : China_Drone_001298.jpg
+2026-08-05 09:17:39 | INFO | Running YOLOv11 prediction...
+2026-08-05 09:17:48 | SUCCESS | Prediction completed
+2026-08-05 09:20:02 | INFO | Backend Stopped.
+2026-08-05 09:20:02 | INFO | Backend Stopped.
+2026-08-05 09:20:08 | INFO | Loading YOLOv11 model...
+2026-08-05 09:20:09 | INFO | Loading YOLOv11 model...
+2026-08-05 09:20:09 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:20:09 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:20:09 | INFO | Backend Stopped.
+2026-08-05 09:20:09 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:20:09 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:20:12 | INFO | Loading YOLOv11 model...
+2026-08-05 09:20:13 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:20:13 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:20:25 | INFO | Loading YOLOv11 model...
+2026-08-05 09:20:25 | SUCCESS | YOLOv11 Model Loaded Successfully.
+2026-08-05 09:20:25 | SUCCESS | Backend Started Successfully.
+2026-08-05 09:23:11 | INFO | Image Uploaded : China_Drone_000616.jpg
+2026-08-05 09:23:11 | INFO | Running YOLOv11 prediction...
+2026-08-05 09:23:17 | SUCCESS | Prediction completed
+2026-08-05 09:23:17 | INFO | Detection history saved.

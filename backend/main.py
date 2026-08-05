@@ -10,44 +10,65 @@ Developer : Warda Ahad
 
 from pathlib import Path
 
+
 from fastapi import (
+
     FastAPI,
+
     UploadFile,
+
     File,
+
     HTTPException
+
 )
 
+
 from fastapi.responses import FileResponse
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
 
-# =========================================================
-# Backend Imports
-# =========================================================
 
 from backend.config import (
+
     APP_NAME,
+
     APP_VERSION,
+
     API_DESCRIPTION,
+
 )
+
+
 
 from backend.logger import app_logger
 
+
+
 from backend.utils import (
+
     allowed_file,
+
     save_upload,
+
+    save_detection_history,
+
+    current_time
+
 )
 
+
+
 from backend.predictor import Predictor
+
 
 from backend.model_loader import model
 
 
 
-# =========================================================
-# FastAPI Application
-# =========================================================
+
 
 app = FastAPI(
 
@@ -61,9 +82,7 @@ app = FastAPI(
 
 
 
-# =========================================================
-# CORS Configuration
-# =========================================================
+
 
 app.add_middleware(
 
@@ -81,9 +100,7 @@ app.add_middleware(
 
 
 
-# =========================================================
-# Root API
-# =========================================================
+
 
 @app.get("/")
 
@@ -101,9 +118,7 @@ def root():
 
 
 
-# =========================================================
-# Health Check
-# =========================================================
+
 
 @app.get("/health")
 
@@ -121,9 +136,7 @@ def health():
 
 
 
-# =========================================================
-# Model Information
-# =========================================================
+
 
 @app.get("/model-info")
 
@@ -141,9 +154,7 @@ def model_info():
 
 
 
-# =========================================================
-# Image Prediction
-# =========================================================
+
 
 @app.post("/predict")
 
@@ -153,7 +164,6 @@ async def predict(
 
 ):
 
-    # Check image format
 
     if not allowed_file(file.filename):
 
@@ -166,9 +176,9 @@ async def predict(
         )
 
 
-    # Save uploaded image
 
     image_path = save_upload(file)
+
 
 
     app_logger.info(
@@ -178,7 +188,7 @@ async def predict(
     )
 
 
-    # Run YOLO prediction
+
 
     prediction = Predictor.predict(
 
@@ -187,23 +197,67 @@ async def predict(
     )
 
 
+
+
+    # ================================
+    # Save Detection History
+    # ================================
+
+
+    history_data = {
+
+
+        "timestamp": current_time(),
+
+
+        "original_filename": file.filename,
+
+
+        "result_filename": prediction["filename"],
+
+
+        "total_objects": prediction["total_objects"],
+
+
+        "detections": prediction["detections"],
+
+
+        "processing_time": prediction["processing_time"]
+
+
+    }
+
+
+
+    save_detection_history(
+
+        history_data
+
+    )
+
+
+
+    app_logger.info(
+
+        "Detection history saved."
+
+    )
+
+
+
     return prediction
 
 
 
-# =========================================================
-# Download Detection Result
-# =========================================================
+
 
 @app.get("/download/{filename}")
 
-def download_result(
+def download_result(filename: str):
 
-        filename: str
-
-):
 
     path = Path("results") / filename
+
 
 
     if not path.exists():
@@ -217,23 +271,20 @@ def download_result(
         )
 
 
+
     return FileResponse(path)
 
 
 
-# =========================================================
-# Delete Uploaded Image
-# =========================================================
+
 
 @app.delete("/delete/{filename}")
 
-def delete_file(
+def delete_file(filename: str):
 
-        filename: str
-
-):
 
     path = Path("uploads") / filename
+
 
 
     if path.exists():
@@ -241,7 +292,9 @@ def delete_file(
         path.unlink()
 
 
+
     return {
+
 
         "message": "Deleted Successfully"
 
@@ -249,9 +302,7 @@ def delete_file(
 
 
 
-# =========================================================
-# Startup Event
-# =========================================================
+
 
 @app.on_event("startup")
 
@@ -266,9 +317,7 @@ def startup():
 
 
 
-# =========================================================
-# Shutdown Event
-# =========================================================
+
 
 @app.on_event("shutdown")
 
