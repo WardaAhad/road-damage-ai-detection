@@ -6,6 +6,7 @@ Developer : Warda Ahad
 =========================================================
 """
 
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
 import os
@@ -21,12 +22,13 @@ load_dotenv()
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+TMP_DIR = Path(tempfile.gettempdir())
 
 MODEL_DIR = BASE_DIR / "models"
-UPLOAD_DIR = BASE_DIR / "uploads"
-RESULT_DIR = BASE_DIR / "results"
-LOG_DIR = BASE_DIR / "logs"
-HISTORY_DIR = BASE_DIR / "history"
+UPLOAD_DIR = TMP_DIR / "uploads"
+RESULT_DIR = TMP_DIR / "results"
+LOG_DIR = TMP_DIR / "logs"
+HISTORY_DIR = TMP_DIR / "history"
 
 MODEL_PATH = MODEL_DIR / "best.pt"
 
