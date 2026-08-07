@@ -2,12 +2,9 @@
 =========================================================
 AI Road Damage Detection System
 FastAPI Backend
-
 Developer : Warda Ahad
 =========================================================
 """
-
-from pathlib import Path
 
 from fastapi import (
     FastAPI,
@@ -19,7 +16,7 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.config import (
+from config import (
     APP_NAME,
     APP_VERSION,
     API_DESCRIPTION,
@@ -27,18 +24,22 @@ from backend.config import (
     UPLOAD_DIR,
 )
 
-from backend.logger import app_logger
+from logger import app_logger
 
-from backend.utils import (
+from utils import (
     allowed_file,
     save_upload,
     save_detection_history,
     current_time
 )
 
-from backend.predictor import Predictor
-from backend.model_loader import model
+from predictor import Predictor
+from model_loader import model
 
+
+# =========================================================
+# FastAPI Application
+# =========================================================
 
 app = FastAPI(
     title=APP_NAME,
@@ -46,6 +47,10 @@ app = FastAPI(
     description=API_DESCRIPTION
 )
 
+
+# =========================================================
+# CORS Configuration
+# =========================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +61,10 @@ app.add_middleware(
 )
 
 
+# =========================================================
+# Root Endpoint
+# =========================================================
+
 @app.get("/")
 def root():
     return {
@@ -64,6 +73,10 @@ def root():
         "status": "Running"
     }
 
+
+# =========================================================
+# Health Check
+# =========================================================
 
 @app.get("/health")
 def health():
@@ -74,6 +87,10 @@ def health():
     }
 
 
+# =========================================================
+# Model Information
+# =========================================================
+
 @app.get("/model-info")
 def model_info():
     return {
@@ -83,10 +100,24 @@ def model_info():
     }
 
 
+# =========================================================
+# Prediction Endpoint
+# =========================================================
+
 @app.post("/predict")
 async def predict(
-        file: UploadFile = File(...)
+    file: UploadFile = File(...)
 ):
+
+    # -----------------------------------------------------
+    # Validate File
+    # -----------------------------------------------------
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=400,
+            detail="No file provided."
+        )
 
     if not allowed_file(file.filename):
         raise HTTPException(
@@ -94,19 +125,27 @@ async def predict(
             detail="Unsupported Image Format"
         )
 
+    # -----------------------------------------------------
+    # Save Uploaded Image
+    # -----------------------------------------------------
+
     image_path = save_upload(file)
 
     app_logger.info(
         f"Image Uploaded : {file.filename}"
     )
 
+    # -----------------------------------------------------
+    # Run YOLO Prediction
+    # -----------------------------------------------------
+
     prediction = Predictor.predict(
         image_path
     )
 
-    # ================================
+    # -----------------------------------------------------
     # Save Detection History
-    # ================================
+    # -----------------------------------------------------
 
     history_data = {
         "timestamp": current_time(),
@@ -128,6 +167,10 @@ async def predict(
     return prediction
 
 
+# =========================================================
+# Download Detection Result
+# =========================================================
+
 @app.get("/download/{filename}")
 def download_result(filename: str):
 
@@ -139,8 +182,14 @@ def download_result(filename: str):
             detail="Result not found"
         )
 
-    return FileResponse(path)
+    return FileResponse(
+        path
+    )
 
+
+# =========================================================
+# Delete Uploaded File
+# =========================================================
 
 @app.delete("/delete/{filename}")
 def delete_file(filename: str):
@@ -155,15 +204,25 @@ def delete_file(filename: str):
     }
 
 
+# =========================================================
+# Startup Event
+# =========================================================
+
 @app.on_event("startup")
 def startup():
+
     app_logger.success(
         "Backend Started Successfully."
     )
 
 
+# =========================================================
+# Shutdown Event
+# =========================================================
+
 @app.on_event("shutdown")
 def shutdown():
+
     app_logger.info(
         "Backend Stopped."
     )
