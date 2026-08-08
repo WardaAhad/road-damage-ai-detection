@@ -2,11 +2,8 @@
 =========================================================
 AI Road Damage Detection System
 Streamlit Frontend
-=========================================================
-
-Backend  : FastAPI + YOLOv11  (Railway)
-Frontend : Streamlit Community Cloud
-Developer: Warda Ahad
+Developer : Warda Ahad
+Backend   : FastAPI + YOLOv11
 =========================================================
 """
 
@@ -20,7 +17,7 @@ from PIL import Image
 
 
 # =========================================================
-# Page Config
+# Page Configuration
 # =========================================================
 
 st.set_page_config(
@@ -32,18 +29,10 @@ st.set_page_config(
 
 
 # =========================================================
-# API Base URL
-# Railway Backend
+# Local Backend API
 # =========================================================
 
-DEFAULT_API_URL = (
-    "https://ai-road-damage-detection-system-production-3603.up.railway.app"
-)
-
-API_URL = st.secrets.get(
-    "API_URL",
-    DEFAULT_API_URL,
-).rstrip("/")
+API_URL = "http://127.0.0.1:8000"
 
 
 # =========================================================
@@ -181,7 +170,7 @@ if "history" not in st.session_state:
 
 
 # =========================================================
-# Helper Functions
+# Backend Health Check
 # =========================================================
 
 def check_backend_health():
@@ -190,35 +179,41 @@ def check_backend_health():
 
         response = requests.get(
             f"{API_URL}/health",
-            timeout=8,
+            timeout=8
         )
 
         if response.status_code == 200:
+
             return True, response.json()
 
         return False, None
 
     except requests.exceptions.RequestException:
+
         return False, None
 
 
+# =========================================================
+# Prediction Function
+# =========================================================
+
 def run_prediction(
     image_bytes: bytes,
-    filename: str,
+    filename: str
 ):
 
     files = {
         "file": (
             filename,
             image_bytes,
-            "image/jpeg",
+            "image/jpeg"
         )
     }
 
     response = requests.post(
         f"{API_URL}/predict",
         files=files,
-        timeout=120,
+        timeout=120
     )
 
     response.raise_for_status()
@@ -226,13 +221,17 @@ def run_prediction(
     return response.json()
 
 
+# =========================================================
+# Fetch Result Image
+# =========================================================
+
 def fetch_result_image(
-    result_filename: str,
+    result_filename: str
 ):
 
     response = requests.get(
         f"{API_URL}/download/{result_filename}",
-        timeout=30,
+        timeout=30
     )
 
     response.raise_for_status()
@@ -240,6 +239,13 @@ def fetch_result_image(
     return Image.open(
         io.BytesIO(response.content)
     )
+
+
+# =========================================================
+# Backend Status
+# =========================================================
+
+is_online, health_data = check_backend_health()
 
 
 # =========================================================
@@ -259,10 +265,8 @@ with st.sidebar:
     st.divider()
 
     # -----------------------------------------------------
-    # Backend Health
+    # Backend Status
     # -----------------------------------------------------
-
-    is_online, health_data = check_backend_health()
 
     if is_online:
 
@@ -273,15 +277,17 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-        st.caption(
-            f"Model loaded: "
-            f"{health_data.get('model_loaded')}"
-        )
+        if health_data:
 
-        st.caption(
-            f"API version: "
-            f"{health_data.get('version')}"
-        )
+            st.caption(
+                f"Model loaded: "
+                f"{health_data.get('model_loaded')}"
+            )
+
+            st.caption(
+                f"API version: "
+                f"{health_data.get('version')}"
+            )
 
     else:
 
@@ -293,8 +299,15 @@ with st.sidebar:
         )
 
         st.caption(
-            "Backend server sleeping or unreachable. "
-            "First request may take a few seconds to wake it up."
+            "Start the FastAPI backend first."
+        )
+
+        st.code(
+            "python -m uvicorn "
+            "backend.main:app "
+            "--reload "
+            "--host 127.0.0.1 "
+            "--port 8000"
         )
 
     st.divider()
@@ -308,9 +321,10 @@ with st.sidebar:
     )
 
     st.write(
-        "Upload a road image and the model will detect "
-        "cracks, potholes and other surface damage "
-        "with bounding boxes and confidence scores."
+        "Upload a road image and the model will "
+        "detect cracks, potholes and other surface "
+        "damage with bounding boxes and confidence "
+        "scores."
     )
 
     st.divider()
@@ -333,6 +347,11 @@ with st.sidebar:
         f"[Backend API]({API_URL})"
     )
 
+    st.markdown(
+        f"[API Documentation]"
+        f"({API_URL}/docs)"
+    )
+
     st.divider()
 
     st.caption(
@@ -341,22 +360,26 @@ with st.sidebar:
 
 
 # =========================================================
-# Header
+# Main Header
 # =========================================================
 
 st.markdown(
-    '<div class="main-title">'
-    'AI Road Damage Detection'
-    '</div>',
+    """
+    <div class="main-title">
+        AI Road Damage Detection
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
 st.markdown(
-    '<div class="sub-title">'
-    'Upload a road/pavement image to automatically detect '
-    'cracks, potholes and surface damage using a YOLOv11 '
-    'deep learning model.'
-    '</div>',
+    """
+    <div class="sub-title">
+        Upload a road/pavement image to automatically
+        detect cracks, potholes and surface damage
+        using a YOLOv11 deep learning model.
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -375,14 +398,14 @@ tab_detect, tab_history, tab_about = st.tabs(
 
 
 # =========================================================
-# Tab 1 : Detection
+# TAB 1 : Detection
 # =========================================================
 
 with tab_detect:
 
     left, right = st.columns(
         [1, 1],
-        gap="large",
+        gap="large"
     )
 
     # =====================================================
@@ -435,6 +458,7 @@ with tab_detect:
                 "👆 Please upload an image to begin."
             )
 
+
     # =====================================================
     # RIGHT COLUMN
     # =====================================================
@@ -450,9 +474,8 @@ with tab_detect:
             if not is_online:
 
                 st.error(
-                    "Backend server is not reachable right now. "
-                    "Please try again in a few seconds "
-                    "(Railway free instances can sleep)."
+                    "Backend server is not running. "
+                    "Please start FastAPI first."
                 )
 
             else:
@@ -464,7 +487,7 @@ with tab_detect:
                     try:
 
                         # ---------------------------------
-                        # Read Uploaded Image
+                        # Read Image
                         # ---------------------------------
 
                         uploaded_file.seek(0)
@@ -474,16 +497,16 @@ with tab_detect:
                         )
 
                         # ---------------------------------
-                        # Run Prediction
+                        # Prediction
                         # ---------------------------------
 
                         result = run_prediction(
                             image_bytes,
-                            uploaded_file.name,
+                            uploaded_file.name
                         )
 
                         # ---------------------------------
-                        # Fetch Result Image
+                        # Result Image
                         # ---------------------------------
 
                         result_img = fetch_result_image(
@@ -497,102 +520,24 @@ with tab_detect:
                         )
 
                         # ---------------------------------
-                        # Save History
-                        # ---------------------------------
-
-                        st.session_state.history.insert(
-                            0,
-                            {
-                                "time": datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S"
-                                ),
-                                "filename": uploaded_file.name,
-                                "total_objects": (
-                                    result["total_objects"]
-                                ),
-                                "processing_time": (
-                                    result["processing_time"]
-                                ),
-                                "detections": (
-                                    result["detections"]
-                                ),
-                            },
-                        )
-
-                        # ---------------------------------
                         # Metrics
                         # ---------------------------------
 
-                        c1, c2, c3 = st.columns(3)
+                        st.markdown(
+                            "### 📊 Detection Summary"
+                        )
 
-                        with c1:
+                        c1, c2 = st.columns(2)
 
-                            st.markdown(
-                                f"""
-                                <div class="metric-box">
-                                    <div class="metric-value">
-                                        {result["total_objects"]}
-                                    </div>
+                        c1.metric(
+                            "Objects Detected",
+                            result["total_objects"]
+                        )
 
-                                    <div class="metric-label">
-                                        Objects Detected
-                                    </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True,
-                            )
-
-                        with c2:
-
-                            st.markdown(
-                                f"""
-                                <div class="metric-box">
-                                    <div class="metric-value">
-                                        {result["processing_time"]}s
-                                    </div>
-
-                                    <div class="metric-label">
-                                        Processing Time
-                                    </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True,
-                            )
-
-                        with c3:
-
-                            if result["detections"]:
-
-                                avg_conf = round(
-                                    sum(
-                                        d["confidence"]
-                                        for d in result["detections"]
-                                    )
-                                    / len(
-                                        result["detections"]
-                                    )
-                                    * 100,
-                                    1,
-                                )
-
-                            else:
-
-                                avg_conf = 0
-
-                            st.markdown(
-                                f"""
-                                <div class="metric-box">
-                                    <div class="metric-value">
-                                        {avg_conf}%
-                                    </div>
-
-                                    <div class="metric-label">
-                                        Avg Confidence
-                                    </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True,
-                            )
+                        c2.metric(
+                            "Processing Time",
+                            f"{result['processing_time']}s"
+                        )
 
                         # ---------------------------------
                         # Detection Details
@@ -601,7 +546,7 @@ with tab_detect:
                         if result["detections"]:
 
                             st.markdown(
-                                "#### 📋 Detection Details"
+                                "### 🔎 Detection Details"
                             )
 
                             df = pd.DataFrame(
@@ -611,29 +556,11 @@ with tab_detect:
                             df["confidence"] = (
                                 df["confidence"]
                                 * 100
-                            ).round(1).astype(str) + "%"
-
-                            df = df.rename(
-                                columns={
-                                    "class_name":
-                                        "Damage Type",
-
-                                    "confidence":
-                                        "Confidence",
-
-                                    "xmin":
-                                        "X Min",
-
-                                    "ymin":
-                                        "Y Min",
-
-                                    "xmax":
-                                        "X Max",
-
-                                    "ymax":
-                                        "Y Max",
-                                }
-                            )
+                            ).round(
+                                1
+                            ).astype(
+                                str
+                            ) + "%"
 
                             st.dataframe(
                                 df,
@@ -643,30 +570,38 @@ with tab_detect:
 
                         else:
 
-                            st.success(
-                                "No damage detected in this image. "
-                                "Road surface looks fine! ✅"
+                            st.info(
+                                "No road damage detected."
                             )
 
                         # ---------------------------------
-                        # Download Result
+                        # Save History
                         # ---------------------------------
 
-                        buf = io.BytesIO()
+                        st.session_state.history.insert(
+                            0,
+                            {
+                                "time":
+                                    datetime.now().strftime(
+                                        "%Y-%m-%d %H:%M:%S"
+                                    ),
 
-                        result_img.save(
-                            buf,
-                            format="JPEG",
+                                "filename":
+                                    uploaded_file.name,
+
+                                "total_objects":
+                                    result["total_objects"],
+
+                                "processing_time":
+                                    result["processing_time"],
+
+                                "detections":
+                                    result["detections"],
+                            }
                         )
 
-                        st.download_button(
-                            "⬇️ Download Result Image",
-                            data=buf.getvalue(),
-                            file_name=(
-                                f"result_{uploaded_file.name}"
-                            ),
-                            mime="image/jpeg",
-                            use_container_width=True,
+                        st.success(
+                            "✅ Detection completed successfully."
                         )
 
                     except requests.exceptions.HTTPError as e:
@@ -674,13 +609,6 @@ with tab_detect:
                         st.error(
                             f"Backend returned an error: {e}"
                         )
-
-                        try:
-                            st.code(
-                                e.response.text
-                            )
-                        except Exception:
-                            pass
 
                     except requests.exceptions.RequestException as e:
 
@@ -697,17 +625,21 @@ with tab_detect:
         else:
 
             st.markdown(
-                '<div class="card">'
-                'Detection result will appear here after '
-                'you upload an image and click '
-                '<b>Run Detection</b>.'
-                '</div>',
+                """
+                <div class="card">
+
+                Detection result will appear here
+                after you upload an image and click
+                <b>Run Detection</b>.
+
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
 
 
 # =========================================================
-# Tab 2 : History
+# TAB 2 : History
 # =========================================================
 
 with tab_history:
@@ -728,7 +660,7 @@ with tab_history:
         for item in st.session_state.history:
 
             with st.expander(
-                f"📄 {item['filename']}  —  "
+                f"📄 {item['filename']} — "
                 f"{item['time']}"
             ):
 
@@ -736,12 +668,12 @@ with tab_history:
 
                 c1.metric(
                     "Objects Detected",
-                    item["total_objects"],
+                    item["total_objects"]
                 )
 
                 c2.metric(
                     "Processing Time",
-                    f"{item['processing_time']}s",
+                    f"{item['processing_time']}s"
                 )
 
                 if item["detections"]:
@@ -753,7 +685,11 @@ with tab_history:
                     df["confidence"] = (
                         df["confidence"]
                         * 100
-                    ).round(1).astype(str) + "%"
+                    ).round(
+                        1
+                    ).astype(
+                        str
+                    ) + "%"
 
                     st.dataframe(
                         df,
@@ -771,7 +707,7 @@ with tab_history:
 
 
 # =========================================================
-# Tab 3 : About
+# TAB 3 : About
 # =========================================================
 
 with tab_about:
@@ -785,10 +721,10 @@ with tab_about:
         </h4>
 
         <p>
-            This project uses a <b>YOLOv11</b> object
-            detection model, trained to identify road
-            surface damage such as cracks and potholes
-            from images.
+            This project uses a
+            <b>YOLOv11</b> object detection model
+            trained to identify road surface damage
+            such as cracks and potholes from images.
         </p>
 
         <b>Architecture</b>
@@ -797,14 +733,12 @@ with tab_about:
 
             <li>
                 <b>Backend:</b>
-                FastAPI + Ultralytics YOLOv11,
-                deployed on Railway
+                FastAPI + Ultralytics YOLOv11
             </li>
 
             <li>
                 <b>Frontend:</b>
-                Streamlit,
-                deployed on Streamlit Community Cloud
+                Streamlit
             </li>
 
             <li>
@@ -818,8 +752,8 @@ with tab_about:
 
         <p>
             Road cracks, potholes and other surface
-            damage types, each returned with a bounding
-            box and confidence score.
+            damage types, each returned with a
+            bounding box and confidence score.
         </p>
 
         <b>How it works</b>
@@ -839,7 +773,7 @@ with tab_about:
             </li>
 
             <li>
-                Annotated image + detection details
+                Annotated image and detection details
                 are returned and displayed
             </li>
 
