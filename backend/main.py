@@ -1,7 +1,7 @@
 """
 =========================================================
 AI Road Damage Detection System
-FastAPI Backend
+Backend : FastAPI + YOLOv11
 Developer : Warda Ahad
 =========================================================
 """
@@ -10,13 +10,18 @@ from fastapi import (
     FastAPI,
     UploadFile,
     File,
-    HTTPException
+    HTTPException,
 )
 
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import (
+
+# =========================================================
+# Backend Imports
+# =========================================================
+
+from backend.config import (
     APP_NAME,
     APP_VERSION,
     API_DESCRIPTION,
@@ -24,17 +29,17 @@ from config import (
     UPLOAD_DIR,
 )
 
-from logger import app_logger
+from backend.logger import app_logger
 
-from utils import (
+from backend.utils import (
     allowed_file,
     save_upload,
     save_detection_history,
-    current_time
+    current_time,
 )
 
-from predictor import Predictor
-from model_loader import model
+from backend.predictor import Predictor
+from backend.model_loader import model
 
 
 # =========================================================
@@ -44,7 +49,7 @@ from model_loader import model
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
-    description=API_DESCRIPTION
+    description=API_DESCRIPTION,
 )
 
 
@@ -67,10 +72,11 @@ app.add_middleware(
 
 @app.get("/")
 def root():
+
     return {
         "message": "AI Road Damage Detection API",
         "version": APP_VERSION,
-        "status": "Running"
+        "status": "Running",
     }
 
 
@@ -80,10 +86,11 @@ def root():
 
 @app.get("/health")
 def health():
+
     return {
         "status": "Healthy",
         "model_loaded": model is not None,
-        "version": APP_VERSION
+        "version": APP_VERSION,
     }
 
 
@@ -93,10 +100,11 @@ def health():
 
 @app.get("/model-info")
 def model_info():
+
     return {
         "model": "YOLOv11",
         "framework": "Ultralytics",
-        "version": APP_VERSION
+        "version": APP_VERSION,
     }
 
 
@@ -106,7 +114,7 @@ def model_info():
 
 @app.post("/predict")
 async def predict(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
 ):
 
     # -----------------------------------------------------
@@ -114,55 +122,95 @@ async def predict(
     # -----------------------------------------------------
 
     if not file.filename:
+
         raise HTTPException(
             status_code=400,
-            detail="No file provided."
+            detail="No file provided.",
         )
 
     if not allowed_file(file.filename):
+
         raise HTTPException(
             status_code=400,
-            detail="Unsupported Image Format"
+            detail="Unsupported Image Format.",
         )
 
     # -----------------------------------------------------
     # Save Uploaded Image
     # -----------------------------------------------------
 
-    image_path = save_upload(file)
+    try:
 
-    app_logger.info(
-        f"Image Uploaded : {file.filename}"
-    )
+        image_path = save_upload(file)
+
+        app_logger.info(
+            f"Image Uploaded : {file.filename}"
+        )
+
+    except Exception as e:
+
+        app_logger.error(
+            f"Failed to save uploaded image: {e}"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save uploaded image.",
+        )
 
     # -----------------------------------------------------
     # Run YOLO Prediction
     # -----------------------------------------------------
 
-    prediction = Predictor.predict(
-        image_path
-    )
+    try:
+
+        prediction = Predictor.predict(
+            image_path
+        )
+
+    except Exception as e:
+
+        app_logger.error(
+            f"Prediction failed: {e}"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {str(e)}",
+        )
 
     # -----------------------------------------------------
     # Save Detection History
     # -----------------------------------------------------
 
-    history_data = {
-        "timestamp": current_time(),
-        "original_filename": file.filename,
-        "result_filename": prediction["filename"],
-        "total_objects": prediction["total_objects"],
-        "detections": prediction["detections"],
-        "processing_time": prediction["processing_time"]
-    }
+    try:
 
-    save_detection_history(
-        history_data
-    )
+        history_data = {
+            "timestamp": current_time(),
+            "original_filename": file.filename,
+            "result_filename": prediction["filename"],
+            "total_objects": prediction["total_objects"],
+            "detections": prediction["detections"],
+            "processing_time": prediction["processing_time"],
+        }
 
-    app_logger.info(
-        "Detection history saved."
-    )
+        save_detection_history(
+            history_data
+        )
+
+        app_logger.info(
+            "Detection history saved."
+        )
+
+    except Exception as e:
+
+        app_logger.error(
+            f"Failed to save detection history: {e}"
+        )
+
+    # -----------------------------------------------------
+    # Return Prediction
+    # -----------------------------------------------------
 
     return prediction
 
@@ -172,14 +220,17 @@ async def predict(
 # =========================================================
 
 @app.get("/download/{filename}")
-def download_result(filename: str):
+def download_result(
+    filename: str,
+):
 
     path = RESULT_DIR / filename
 
     if not path.exists():
+
         raise HTTPException(
             status_code=404,
-            detail="Result not found"
+            detail="Result not found.",
         )
 
     return FileResponse(
@@ -192,16 +243,24 @@ def download_result(filename: str):
 # =========================================================
 
 @app.delete("/delete/{filename}")
-def delete_file(filename: str):
+def delete_file(
+    filename: str,
+):
 
     path = UPLOAD_DIR / filename
 
     if path.exists():
+
         path.unlink()
 
-    return {
-        "message": "Deleted Successfully"
-    }
+        return {
+            "message": "Deleted Successfully",
+        }
+
+    raise HTTPException(
+        status_code=404,
+        detail="File not found.",
+    )
 
 
 # =========================================================

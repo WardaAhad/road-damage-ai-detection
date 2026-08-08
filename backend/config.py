@@ -1,15 +1,17 @@
 """
 =========================================================
 AI Road Damage Detection System
-Configuration File
+Backend Configuration
 Developer : Warda Ahad
 =========================================================
 """
 
+import os
 import tempfile
 from pathlib import Path
+
 from dotenv import load_dotenv
-import os
+
 
 # =========================================================
 # Load Environment Variables
@@ -17,20 +19,31 @@ import os
 
 load_dotenv()
 
+
 # =========================================================
 # Project Paths
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+
 TMP_DIR = Path(tempfile.gettempdir())
 
-MODEL_DIR = BASE_DIR / "models"
+
+# IMPORTANT:
+# Your actual structure is:
+# backend/
+#     model/
+#         best.pt
+
+MODEL_DIR = BASE_DIR / "model"
+
+MODEL_PATH = MODEL_DIR / "best.pt"
+
 UPLOAD_DIR = TMP_DIR / "uploads"
 RESULT_DIR = TMP_DIR / "results"
 LOG_DIR = TMP_DIR / "logs"
 HISTORY_DIR = TMP_DIR / "history"
 
-MODEL_PATH = MODEL_DIR / "best.pt"
 
 # =========================================================
 # Create Required Folders
@@ -43,7 +56,11 @@ for folder in [
     LOG_DIR,
     HISTORY_DIR,
 ]:
-    folder.mkdir(parents=True, exist_ok=True)
+    folder.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
 
 # =========================================================
 # Application Settings
@@ -51,13 +68,14 @@ for folder in [
 
 APP_NAME = os.getenv(
     "APP_NAME",
-    "AI Road Damage Detection API"
+    "AI Road Damage Detection API",
 )
 
 APP_VERSION = os.getenv(
     "APP_VERSION",
-    "1.0.0"
+    "1.0.0",
 )
+
 
 # =========================================================
 # Server Settings
@@ -65,15 +83,16 @@ APP_VERSION = os.getenv(
 
 HOST = os.getenv(
     "HOST",
-    "0.0.0.0"
+    "0.0.0.0",
 )
 
 PORT = int(
     os.getenv(
         "PORT",
-        8000
+        "8000",
     )
 )
+
 
 # =========================================================
 # YOLO Settings
@@ -82,23 +101,24 @@ PORT = int(
 CONFIDENCE_THRESHOLD = float(
     os.getenv(
         "CONFIDENCE_THRESHOLD",
-        0.25
+        "0.25",
     )
 )
 
 IOU_THRESHOLD = float(
     os.getenv(
         "IOU_THRESHOLD",
-        0.45
+        "0.45",
     )
 )
 
 MAX_IMAGE_SIZE = int(
     os.getenv(
         "MAX_IMAGE_SIZE",
-        10 * 1024 * 1024
+        str(10 * 1024 * 1024),
     )
 )
+
 
 # =========================================================
 # Allowed Image Extensions
@@ -109,8 +129,9 @@ ALLOWED_EXTENSIONS = {
     ".jpeg",
     ".png",
     ".bmp",
-    ".webp"
+    ".webp",
 }
+
 
 # =========================================================
 # API Information
@@ -120,6 +141,7 @@ API_DESCRIPTION = """
 Professional AI Road Damage Detection API
 
 Features:
+
 - YOLOv11 Object Detection
 - Road Crack Detection
 - Pothole Detection

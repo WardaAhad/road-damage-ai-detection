@@ -2,9 +2,11 @@
 =========================================================
 AI Road Damage Detection System
 Streamlit Frontend
+=========================================================
 
 Backend  : FastAPI + YOLOv11  (Railway)
-Frontend : Streamlit          (Streamlit Community Cloud)
+Frontend : Streamlit Community Cloud
+Developer: Warda Ahad
 =========================================================
 """
 
@@ -40,141 +42,129 @@ DEFAULT_API_URL = (
 
 API_URL = st.secrets.get(
     "API_URL",
-    DEFAULT_API_URL
+    DEFAULT_API_URL,
 ).rstrip("/")
 
 
 # =========================================================
-# Custom CSS – Professional Look
+# Custom CSS
 # =========================================================
 
 st.markdown(
     """
     <style>
 
-        #MainMenu {
-            visibility: hidden;
-        }
+    #MainMenu {
+        visibility: hidden;
+    }
 
-        footer {
-            visibility: hidden;
-        }
+    footer {
+        visibility: hidden;
+    }
 
-        header {
-            visibility: hidden;
-        }
+    header {
+        visibility: hidden;
+    }
 
+    .stApp {
+        background: linear-gradient(
+            180deg,
+            #0f172a 0%,
+            #111827 100%
+        );
+    }
 
-        .stApp {
-            background: linear-gradient(
-                180deg,
-                #0f172a 0%,
-                #111827 100%
-            );
-        }
+    .main-title {
+        font-size: 2.6rem;
+        font-weight: 800;
 
+        background: linear-gradient(
+            90deg,
+            #38bdf8,
+            #818cf8
+        );
 
-        .main-title {
-            font-size: 2.6rem;
-            font-weight: 800;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
 
-            background: linear-gradient(
-                90deg,
-                #38bdf8,
-                #818cf8
-            );
+        margin-bottom: 0.2rem;
+    }
 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+    .sub-title {
+        font-size: 1.05rem;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
 
-            margin-bottom: 0.2rem;
-        }
+    .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 1.2rem;
+    }
 
+    .metric-box {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 1rem;
+        text-align: center;
+    }
 
-        .sub-title {
-            font-size: 1.05rem;
-            color: #94a3b8;
-            margin-bottom: 1.5rem;
-        }
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #38bdf8;
+    }
 
+    .metric-label {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 14px;
-            padding: 1.4rem 1.6rem;
-            margin-bottom: 1.2rem;
-        }
+    .badge-online {
+        background: #064e3b;
+        color: #34d399;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
 
+    .badge-offline {
+        background: #450a0a;
+        color: #f87171;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
 
-        .metric-box {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 14px;
-            padding: 1rem;
-            text-align: center;
-        }
+    .stButton > button {
+        background: linear-gradient(
+            90deg,
+            #38bdf8,
+            #818cf8
+        );
 
+        color: #0f172a;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1.4rem;
+    }
 
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #38bdf8;
-        }
+    .stButton > button:hover {
+        opacity: 0.9;
+        color: #0f172a;
+    }
 
-
-        .metric-label {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-
-        .badge-online {
-            background: #064e3b;
-            color: #34d399;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-
-        .badge-offline {
-            background: #450a0a;
-            color: #f87171;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-
-        .stButton > button {
-            background: linear-gradient(
-                90deg,
-                #38bdf8,
-                #818cf8
-            );
-
-            color: #0f172a;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            padding: 0.6rem 1.4rem;
-        }
-
-
-        .stButton > button:hover {
-            opacity: 0.9;
-            color: #0f172a;
-        }
-
-
-        section[data-testid="stSidebar"] {
-            background: #0b1220;
-        }
+    section[data-testid="stSidebar"] {
+        background: #0b1220;
+    }
 
     </style>
     """,
@@ -200,37 +190,35 @@ def check_backend_health():
 
         response = requests.get(
             f"{API_URL}/health",
-            timeout=8
+            timeout=8,
         )
 
         if response.status_code == 200:
-
             return True, response.json()
 
         return False, None
 
     except requests.exceptions.RequestException:
-
         return False, None
 
 
 def run_prediction(
     image_bytes: bytes,
-    filename: str
+    filename: str,
 ):
 
     files = {
         "file": (
             filename,
             image_bytes,
-            "image/jpeg"
+            "image/jpeg",
         )
     }
 
     response = requests.post(
         f"{API_URL}/predict",
         files=files,
-        timeout=90
+        timeout=120,
     )
 
     response.raise_for_status()
@@ -239,12 +227,12 @@ def run_prediction(
 
 
 def fetch_result_image(
-    result_filename: str
+    result_filename: str,
 ):
 
     response = requests.get(
         f"{API_URL}/download/{result_filename}",
-        timeout=30
+        timeout=30,
     )
 
     response.raise_for_status()
@@ -270,13 +258,11 @@ with st.sidebar:
 
     st.divider()
 
-
     # -----------------------------------------------------
     # Backend Health
     # -----------------------------------------------------
 
     is_online, health_data = check_backend_health()
-
 
     if is_online:
 
@@ -284,7 +270,7 @@ with st.sidebar:
             '<span class="badge-online">'
             '● Backend Online'
             '</span>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         st.caption(
@@ -303,7 +289,7 @@ with st.sidebar:
             '<span class="badge-offline">'
             '● Backend Offline'
             '</span>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         st.caption(
@@ -311,9 +297,7 @@ with st.sidebar:
             "First request may take a few seconds to wake it up."
         )
 
-
     st.divider()
-
 
     # -----------------------------------------------------
     # About
@@ -329,9 +313,7 @@ with st.sidebar:
         "with bounding boxes and confidence scores."
     )
 
-
     st.divider()
-
 
     # -----------------------------------------------------
     # Links
@@ -351,9 +333,7 @@ with st.sidebar:
         f"[Backend API]({API_URL})"
     )
 
-
     st.divider()
-
 
     st.caption(
         "Developed by Warda Ahad"
@@ -368,9 +348,8 @@ st.markdown(
     '<div class="main-title">'
     'AI Road Damage Detection'
     '</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
-
 
 st.markdown(
     '<div class="sub-title">'
@@ -378,7 +357,7 @@ st.markdown(
     'cracks, potholes and surface damage using a YOLOv11 '
     'deep learning model.'
     '</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -390,7 +369,7 @@ tab_detect, tab_history, tab_about = st.tabs(
     [
         "🔍 Detect",
         "🕘 History",
-        "ℹ️ About the Project"
+        "ℹ️ About the Project",
     ]
 )
 
@@ -403,9 +382,8 @@ with tab_detect:
 
     left, right = st.columns(
         [1, 1],
-        gap="large"
+        gap="large",
     )
-
 
     # =====================================================
     # LEFT COLUMN
@@ -417,7 +395,6 @@ with tab_detect:
             "#### 1. Upload Image"
         )
 
-
         uploaded_file = st.file_uploader(
             "Choose a road image",
             type=[
@@ -425,14 +402,13 @@ with tab_detect:
                 "jpeg",
                 "png",
                 "bmp",
-                "webp"
+                "webp",
             ],
             help=(
                 "Supported formats: "
                 "JPG, JPEG, PNG, BMP, WEBP"
             ),
         )
-
 
         if uploaded_file is not None:
 
@@ -443,13 +419,12 @@ with tab_detect:
             st.image(
                 image,
                 caption="Uploaded Image",
-                use_container_width=True
+                use_container_width=True,
             )
-
 
             run_btn = st.button(
                 "🚀 Run Detection",
-                use_container_width=True
+                use_container_width=True,
             )
 
         else:
@@ -459,7 +434,6 @@ with tab_detect:
             st.info(
                 "👆 Please upload an image to begin."
             )
-
 
     # =====================================================
     # RIGHT COLUMN
@@ -471,7 +445,6 @@ with tab_detect:
             "#### 2. Detection Result"
         )
 
-
         if uploaded_file is not None and run_btn:
 
             if not is_online:
@@ -481,7 +454,6 @@ with tab_detect:
                     "Please try again in a few seconds "
                     "(Railway free instances can sleep)."
                 )
-
 
             else:
 
@@ -501,16 +473,14 @@ with tab_detect:
                             uploaded_file.read()
                         )
 
-
                         # ---------------------------------
                         # Run Prediction
                         # ---------------------------------
 
                         result = run_prediction(
                             image_bytes,
-                            uploaded_file.name
+                            uploaded_file.name,
                         )
-
 
                         # ---------------------------------
                         # Fetch Result Image
@@ -520,13 +490,11 @@ with tab_detect:
                             result["filename"]
                         )
 
-
                         st.image(
                             result_img,
                             caption="Detected Damage",
-                            use_container_width=True
+                            use_container_width=True,
                         )
-
 
                         # ---------------------------------
                         # Save History
@@ -538,23 +506,18 @@ with tab_detect:
                                 "time": datetime.now().strftime(
                                     "%Y-%m-%d %H:%M:%S"
                                 ),
-
                                 "filename": uploaded_file.name,
-
                                 "total_objects": (
                                     result["total_objects"]
                                 ),
-
                                 "processing_time": (
                                     result["processing_time"]
                                 ),
-
                                 "detections": (
                                     result["detections"]
                                 ),
-                            }
+                            },
                         )
-
 
                         # ---------------------------------
                         # Metrics
@@ -562,11 +525,10 @@ with tab_detect:
 
                         c1, c2, c3 = st.columns(3)
 
-
                         with c1:
 
                             st.markdown(
-                                f'''
+                                f"""
                                 <div class="metric-box">
                                     <div class="metric-value">
                                         {result["total_objects"]}
@@ -576,15 +538,14 @@ with tab_detect:
                                         Objects Detected
                                     </div>
                                 </div>
-                                ''',
-                                unsafe_allow_html=True
+                                """,
+                                unsafe_allow_html=True,
                             )
-
 
                         with c2:
 
                             st.markdown(
-                                f'''
+                                f"""
                                 <div class="metric-box">
                                     <div class="metric-value">
                                         {result["processing_time"]}s
@@ -594,36 +555,32 @@ with tab_detect:
                                         Processing Time
                                     </div>
                                 </div>
-                                ''',
-                                unsafe_allow_html=True
+                                """,
+                                unsafe_allow_html=True,
                             )
-
 
                         with c3:
 
-                            avg_conf = (
+                            if result["detections"]:
 
-                                round(
+                                avg_conf = round(
                                     sum(
                                         d["confidence"]
                                         for d in result["detections"]
                                     )
-                                    /
-                                    len(
+                                    / len(
                                         result["detections"]
                                     )
                                     * 100,
-                                    1
+                                    1,
                                 )
 
-                                if result["detections"]
+                            else:
 
-                                else 0
-                            )
-
+                                avg_conf = 0
 
                             st.markdown(
-                                f'''
+                                f"""
                                 <div class="metric-box">
                                     <div class="metric-value">
                                         {avg_conf}%
@@ -633,10 +590,9 @@ with tab_detect:
                                         Avg Confidence
                                     </div>
                                 </div>
-                                ''',
-                                unsafe_allow_html=True
+                                """,
+                                unsafe_allow_html=True,
                             )
-
 
                         # ---------------------------------
                         # Detection Details
@@ -648,17 +604,14 @@ with tab_detect:
                                 "#### 📋 Detection Details"
                             )
 
-
                             df = pd.DataFrame(
                                 result["detections"]
                             )
-
 
                             df["confidence"] = (
                                 df["confidence"]
                                 * 100
                             ).round(1).astype(str) + "%"
-
 
                             df = df.rename(
                                 columns={
@@ -682,13 +635,11 @@ with tab_detect:
                                 }
                             )
 
-
                             st.dataframe(
                                 df,
                                 use_container_width=True,
-                                hide_index=True
+                                hide_index=True,
                             )
-
 
                         else:
 
@@ -696,7 +647,6 @@ with tab_detect:
                                 "No damage detected in this image. "
                                 "Road surface looks fine! ✅"
                             )
-
 
                         # ---------------------------------
                         # Download Result
@@ -706,24 +656,31 @@ with tab_detect:
 
                         result_img.save(
                             buf,
-                            format="JPEG"
+                            format="JPEG",
                         )
-
 
                         st.download_button(
                             "⬇️ Download Result Image",
-
                             data=buf.getvalue(),
-
                             file_name=(
                                 f"result_{uploaded_file.name}"
                             ),
-
                             mime="image/jpeg",
-
-                            use_container_width=True
+                            use_container_width=True,
                         )
 
+                    except requests.exceptions.HTTPError as e:
+
+                        st.error(
+                            f"Backend returned an error: {e}"
+                        )
+
+                        try:
+                            st.code(
+                                e.response.text
+                            )
+                        except Exception:
+                            pass
 
                     except requests.exceptions.RequestException as e:
 
@@ -731,13 +688,11 @@ with tab_detect:
                             f"Request to backend failed: {e}"
                         )
 
-
                     except Exception as e:
 
                         st.error(
                             f"Something went wrong: {e}"
                         )
-
 
         else:
 
@@ -747,7 +702,7 @@ with tab_detect:
                 'you upload an image and click '
                 '<b>Run Detection</b>.'
                 '</div>',
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
 
 
@@ -761,14 +716,12 @@ with tab_history:
         "#### 🕘 Session Detection History"
     )
 
-
     if not st.session_state.history:
 
         st.info(
             "No detections yet in this session. "
             "Run a detection from the **Detect** tab."
         )
-
 
     else:
 
@@ -781,18 +734,15 @@ with tab_history:
 
                 c1, c2 = st.columns(2)
 
-
                 c1.metric(
                     "Objects Detected",
-                    item["total_objects"]
+                    item["total_objects"],
                 )
-
 
                 c2.metric(
                     "Processing Time",
-                    f"{item['processing_time']}s"
+                    f"{item['processing_time']}s",
                 )
-
 
                 if item["detections"]:
 
@@ -800,19 +750,16 @@ with tab_history:
                         item["detections"]
                     )
 
-
                     df["confidence"] = (
                         df["confidence"]
                         * 100
                     ).round(1).astype(str) + "%"
 
-
                     st.dataframe(
                         df,
                         use_container_width=True,
-                        hide_index=True
+                        hide_index=True,
                     )
-
 
         if st.button(
             "🗑️ Clear History"
@@ -844,7 +791,6 @@ with tab_about:
             from images.
         </p>
 
-
         <b>Architecture</b>
 
         <ul>
@@ -868,7 +814,6 @@ with tab_about:
 
         </ul>
 
-
         <b>Detection Classes</b>
 
         <p>
@@ -876,7 +821,6 @@ with tab_about:
             damage types, each returned with a bounding
             box and confidence score.
         </p>
-
 
         <b>How it works</b>
 
@@ -903,9 +847,8 @@ with tab_about:
 
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
-
 
     st.markdown(
         "[⭐ View Source Code on GitHub]"
