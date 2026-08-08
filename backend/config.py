@@ -29,19 +29,33 @@ BASE_DIR = Path(__file__).resolve().parent
 TMP_DIR = Path(tempfile.gettempdir())
 
 
-# IMPORTANT:
-# Your actual structure is:
-# backend/
-#     model/
-#         best.pt
+# =========================================================
+# Model Path
+# =========================================================
 
-MODEL_DIR = BASE_DIR / "model"
+# Actual project structure:
+#
+# backend/
+# ├── config.py
+# ├── main.py
+# └── models/
+#     └── best.pt
+
+MODEL_DIR = BASE_DIR / "models"
 
 MODEL_PATH = MODEL_DIR / "best.pt"
 
+
+# =========================================================
+# Temporary Directories
+# =========================================================
+
 UPLOAD_DIR = TMP_DIR / "uploads"
+
 RESULT_DIR = TMP_DIR / "results"
+
 LOG_DIR = TMP_DIR / "logs"
+
 HISTORY_DIR = TMP_DIR / "history"
 
 
