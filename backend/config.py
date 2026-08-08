@@ -30,10 +30,10 @@ TMP_DIR = Path(tempfile.gettempdir())
 
 
 # =========================================================
-# Model Path
+# Model Paths
 # =========================================================
 
-# Actual project structure:
+# Actual structure:
 #
 # backend/
 # ├── config.py
