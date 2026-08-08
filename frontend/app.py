@@ -193,19 +193,21 @@ st.markdown(
     }
 
     /* ---- Viewfinder frame around images (signature element) ---- */
-    .rd-frame{
+    /* Applied directly to Streamlit's own image container — safer than */
+    /* wrapping it in a hand-written <div> across separate markdown calls. */
+    div[data-testid="stImage"]{
         position:relative;
         border:1px solid var(--panel-border);
         border-radius:4px;
         padding:10px;
         background:var(--panel);
     }
-    .rd-frame::before, .rd-frame::after{
+    div[data-testid="stImage"]::before, div[data-testid="stImage"]::after{
         content:''; position:absolute; width:22px; height:22px;
-        border:3px solid var(--amber);
+        border:3px solid var(--amber); pointer-events:none;
     }
-    .rd-frame::before{ top:-2px; left:-2px; border-right:none; border-bottom:none; }
-    .rd-frame::after{ top:-2px; right:-2px; border-left:none; border-bottom:none; }
+    div[data-testid="stImage"]::before{ top:8px; left:8px; border-right:none; border-bottom:none; }
+    div[data-testid="stImage"]::after{ top:8px; right:8px; border-left:none; border-bottom:none; }
     .rd-label{
         font-family:'JetBrains Mono', monospace; font-size:.72rem;
         color:var(--amber); letter-spacing:.12em; text-transform:uppercase;
@@ -277,32 +279,27 @@ def confidence_color(conf: float) -> str:
 
 
 def render_detections_table(detections: list) -> str:
-    rows = ""
+    # NOTE: every line below starts at column 0 with no leading spaces.
+    # Streamlit's markdown renderer treats 4+ leading spaces as a code
+    # block even with unsafe_allow_html=True, which was breaking the
+    # table into raw visible HTML. Keep this whole block unindented.
+    row_html = []
     for d in detections:
         conf = d.get("confidence", 0)
-        rows += f"""
-        <tr>
-            <td>{d.get('class_name','—')}</td>
-            <td>
-                <div style="display:flex; align-items:center; gap:.5rem;">
-                    <div class="rd-bar-track" style="max-width:90px;">
-                        <div class="rd-bar-fill" style="width:{conf*100:.0f}%; background:{confidence_color(conf)};"></div>
-                    </div>
-                    <span>{conf:.2f}</span>
-                </div>
-            </td>
-            <td>({d.get('xmin','-')}, {d.get('ymin','-')})</td>
-            <td>({d.get('xmax','-')}, {d.get('ymax','-')})</td>
-        </tr>
-        """
-    return f"""
-    <table class="rd-table">
-        <thead>
-            <tr><th>Class</th><th>Confidence</th><th>Top-Left</th><th>Bottom-Right</th></tr>
-        </thead>
-        <tbody>{rows}</tbody>
-    </table>
-    """
+        bar = (
+            f'<div style="display:flex;align-items:center;gap:.5rem;">'
+            f'<div class="rd-bar-track" style="max-width:90px;">'
+            f'<div class="rd-bar-fill" style="width:{conf*100:.0f}%;background:{confidence_color(conf)};"></div>'
+            f'</div><span>{conf:.2f}</span></div>'
+        )
+        row_html.append(
+            f'<tr><td>{d.get("class_name","—")}</td><td>{bar}</td>'
+            f'<td>({d.get("xmin","-")}, {d.get("ymin","-")})</td>'
+            f'<td>({d.get("xmax","-")}, {d.get("ymax","-")})</td></tr>'
+        )
+    rows = "".join(row_html)
+    header = "<tr><th>Class</th><th>Confidence</th><th>Top-Left</th><th>Bottom-Right</th></tr>"
+    return f'<table class="rd-table"><thead>{header}</thead><tbody>{rows}</tbody></table>'
 
 
 # ==========================================================
@@ -372,9 +369,8 @@ if uploaded_file is not None:
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("<div class='rd-frame'><div class='rd-label'>Input</div>", unsafe_allow_html=True)
+            st.markdown("<div class='rd-label'>Input</div>", unsafe_allow_html=True)
             st.image(Image.open(BytesIO(file_bytes)), use_container_width=True)
-            st.markdown("</div>", unsafe_allow_html=True)
 
         detect_clicked = st.button("🔍  Detect Road Damage", type="primary", use_container_width=True)
 
@@ -384,7 +380,7 @@ if uploaded_file is not None:
 
             if result and result.get("success"):
                 with col2:
-                    st.markdown("<div class='rd-frame'><div class='rd-label'>Detected</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='rd-label'>Detected</div>", unsafe_allow_html=True)
                     result_filename = result.get("filename")
                     img_bytes = None
                     try:
@@ -394,7 +390,6 @@ if uploaded_file is not None:
                             st.image(Image.open(BytesIO(img_bytes)), use_container_width=True)
                     except requests.exceptions.RequestException:
                         st.warning("Could not load the annotated result image.")
-                    st.markdown("</div>", unsafe_allow_html=True)
 
                     if img_bytes:
                         st.download_button(
@@ -413,7 +408,7 @@ if uploaded_file is not None:
 
                 detections = result.get("detections", [])
                 if detections:
-                    st.markdown("<div class='rd-label' style='margin-top:1rem;'>Detections</div>", unsafe_allow_html=True)
+                    st.markdown('<div class="rd-label" style="margin-top:1rem;">Detections</div>', unsafe_allow_html=True)
                     st.markdown(render_detections_table(detections), unsafe_allow_html=True)
                 else:
                     st.info("No damage detected in this image.")
