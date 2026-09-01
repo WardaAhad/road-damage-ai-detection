@@ -345,7 +345,7 @@ st.markdown(
 
 if model is None:
     st.error(
-        "Model file not found. Make sure `models/last.pt` is included in the "
+        "Model file not found. Make sure `models/best.pt` is included in the "
         "deployed app folder."
     )
 
