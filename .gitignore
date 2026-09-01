@@ -12,46 +12,16 @@ data/
 # =========================================================
 
 runs/
-outputs/
 wandb/
 
 
 # =========================================================
-# Uploaded Images
-# Keep folder but ignore files
+# Root-level Training Model Checkpoints
+# (not needed for deployment — frontend/models/best.pt is
+# the one actually used by the app and is NOT ignored)
 # =========================================================
 
-backend/uploads/*
-!backend/uploads/.gitkeep
-
-
-# =========================================================
-# Generated Result Images
-# Keep folder but ignore images
-# =========================================================
-
-backend/results/*
-!backend/results/.gitkeep
-
-
-# =========================================================
-# Logs
-# Keep application log file for demo
-# Ignore future logs
-# =========================================================
-
-backend/logs/*
-!backend/logs/app.log
-
-
-# =========================================================
-# Detection History
-# Keep history JSON for demo
-# Ignore temporary files
-# =========================================================
-
-backend/history/*
-!backend/history/detection_history.json
+models/
 
 
 # =========================================================
@@ -94,13 +64,6 @@ ENV/
 
 .vscode/
 .idea/
-
-
-# =========================================================
-# Streamlit
-# =========================================================
-
-.streamlit/secrets.toml
 
 
 # =========================================================

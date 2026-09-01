@@ -1,5 +1,10 @@
-.streamlit/secrets.toml
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 .venv/
 venv/
+env/
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak

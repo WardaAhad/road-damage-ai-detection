@@ -1,24 +1,23 @@
 """
 =========================================================
 AI Road Damage Detection System
-Frontend (Streamlit)
+Frontend (Streamlit) — Standalone (no backend)
 Developer : Warda Ahad
 =========================================================
 """
 
 import os
-import requests
-import streamlit as st
-from PIL import Image
+import time
 from io import BytesIO
 
+import streamlit as st
+from PIL import Image
 
 # ==========================================================
 # BASE DIRECTORY
 # ==========================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 # ==========================================================
 # PAGE CONFIGURATION
@@ -36,21 +35,11 @@ st.set_page_config(
     initial_sidebar_state=SIDEBAR_STATE,
 )
 
-
 # ==========================================================
-# BACKEND API CONFIGURATION
+# MODEL CONFIGURATION
 # ==========================================================
 
-API_BASE_URL = st.secrets.get(
-    "API_URL",
-    "https://road-damage-ai-detection-production.up.railway.app",
-)
-
-PREDICT_ENDPOINT = f"{API_BASE_URL}/predict"
-HEALTH_ENDPOINT = f"{API_BASE_URL}/health"
-MODEL_INFO_ENDPOINT = f"{API_BASE_URL}/model-info"
-DOWNLOAD_ENDPOINT = f"{API_BASE_URL}/download"
-
+MODEL_PATH = os.path.join(BASE_DIR, "models", "best.pt")
 
 # ==========================================================
 # FILE CONFIGURATION
@@ -58,7 +47,6 @@ DOWNLOAD_ENDPOINT = f"{API_BASE_URL}/download"
 
 ALLOWED_IMAGE_TYPES = ["jpg", "jpeg", "png", "webp"]
 MAX_UPLOAD_SIZE_MB = 10
-
 
 # ==========================================================
 # ASSETS (optional)
@@ -68,16 +56,14 @@ ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 LOGO_PATH = os.path.join(ASSETS_DIR, "logo.png")
 BANNER_PATH = os.path.join(ASSETS_DIR, "banner.png")
 
-
 # ==========================================================
 # APP SETTINGS
 # ==========================================================
 
 APP_NAME = "AI Road Damage Detection System"
-APP_VERSION = "1.0.0"
+APP_VERSION = "2.0.0"
 MODEL_NAME = "YOLOv11"
 CONFIDENCE_THRESHOLD = 0.25
-BACKEND_TIMEOUT = 120
 
 
 # ==========================================================
@@ -112,14 +98,12 @@ st.markdown(
         color: var(--text);
     }
 
-    /* ---- Sidebar: device-panel look ---- */
     section[data-testid="stSidebar"]{
         background: var(--panel);
         border-right: 1px solid var(--panel-border);
     }
     section[data-testid="stSidebar"] * { color: var(--text); }
 
-    /* ---- Headings: condensed highway-sign type ---- */
     h1, h2, h3 {
         font-family:'Oswald', sans-serif !important;
         text-transform:uppercase;
@@ -145,13 +129,11 @@ st.markdown(
     }
     .rd-sub{ color:var(--muted); margin-bottom:1.2rem; }
 
-    /* lane-marking divider */
     .rd-divider{
         height:0; border:0; border-top:3px dashed var(--panel-border);
         margin:1.6rem 0;
     }
 
-    /* ---- Status pill ---- */
     .rd-status{
         display:flex; align-items:center; gap:.55rem;
         background:var(--panel); border:1px solid var(--panel-border);
@@ -162,7 +144,6 @@ st.markdown(
     .rd-dot.on{ background:var(--green); box-shadow:0 0 8px var(--green); }
     .rd-dot.off{ background:var(--red); box-shadow:0 0 8px var(--red); }
 
-    /* ---- Uploader ---- */
     [data-testid="stFileUploaderDropzone"]{
         background:var(--panel) !important;
         border:2px dashed var(--panel-border) !important;
@@ -172,7 +153,6 @@ st.markdown(
         border-color:var(--amber) !important;
     }
 
-    /* ---- Buttons ---- */
     .stButton>button{
         font-family:'Oswald', sans-serif;
         text-transform:uppercase;
@@ -192,9 +172,6 @@ st.markdown(
         font-family:'JetBrains Mono', monospace !important;
     }
 
-    /* ---- Viewfinder frame around images (signature element) ---- */
-    /* Applied directly to Streamlit's own image container — safer than */
-    /* wrapping it in a hand-written <div> across separate markdown calls. */
     div[data-testid="stImage"]{
         position:relative;
         border:1px solid var(--panel-border);
@@ -214,14 +191,12 @@ st.markdown(
         margin-bottom:.5rem;
     }
 
-    /* ---- Metrics ---- */
     [data-testid="stMetric"]{
         background:var(--panel); border:1px solid var(--panel-border);
         border-radius:6px; padding:.8rem 1rem;
     }
     [data-testid="stMetricValue"]{ color:var(--amber); font-family:'JetBrains Mono', monospace; }
 
-    /* ---- Detection table ---- */
     .rd-table{ width:100%; border-collapse:collapse; font-family:'JetBrains Mono', monospace; font-size:.85rem; }
     .rd-table th{
         text-align:left; text-transform:uppercase; letter-spacing:.08em;
@@ -232,7 +207,6 @@ st.markdown(
     .rd-bar-track{ background:#2a2d35; border-radius:3px; height:6px; width:100%; overflow:hidden; }
     .rd-bar-fill{ height:100%; background:var(--amber); }
 
-    /* ---- Footer ---- */
     .rd-footer{
         margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--panel-border);
         color:var(--muted); font-size:.8rem; font-family:'JetBrains Mono', monospace;
@@ -244,30 +218,15 @@ st.markdown(
 
 
 # ==========================================================
-# HELPERS
+# MODEL LOADING (cached — loads once per session)
 # ==========================================================
 
-def check_backend_health():
-    try:
-        res = requests.get(HEALTH_ENDPOINT, timeout=10)
-        if res.status_code == 200:
-            return res.json()
-    except requests.exceptions.RequestException:
+@st.cache_resource(show_spinner=False)
+def load_model():
+    from ultralytics import YOLO
+    if not os.path.exists(MODEL_PATH):
         return None
-    return None
-
-
-def run_prediction(image_bytes: bytes, filename: str):
-    try:
-        files = {"file": (filename, image_bytes)}
-        res = requests.post(PREDICT_ENDPOINT, files=files, timeout=BACKEND_TIMEOUT)
-        if res.status_code == 200:
-            return res.json()
-        st.error(f"Backend Error ({res.status_code}): {res.text}")
-        return None
-    except requests.exceptions.RequestException as e:
-        st.error(f"Could not reach backend: {e}")
-        return None
+    return YOLO(MODEL_PATH)
 
 
 def confidence_color(conf: float) -> str:
@@ -302,6 +261,43 @@ def render_detections_table(detections: list) -> str:
     return f'<table class="rd-table"><thead>{header}</thead><tbody>{rows}</tbody></table>'
 
 
+def run_local_prediction(model, pil_image: Image.Image):
+    """Runs YOLO inference directly (no backend/API call) and returns
+    an annotated PIL image plus a list of detection dicts."""
+    start = time.time()
+    results = model.predict(pil_image, conf=CONFIDENCE_THRESHOLD, verbose=False)
+    elapsed = round(time.time() - start, 2)
+
+    result = results[0]
+    annotated_bgr = result.plot()  # numpy array, BGR
+    annotated_rgb = annotated_bgr[:, :, ::-1]
+    annotated_image = Image.fromarray(annotated_rgb)
+
+    detections = []
+    names = result.names
+    if result.boxes is not None:
+        for box in result.boxes:
+            xyxy = box.xyxy[0].tolist()
+            cls_id = int(box.cls[0].item())
+            conf = float(box.conf[0].item())
+            detections.append({
+                "class_name": names.get(cls_id, str(cls_id)),
+                "confidence": conf,
+                "xmin": round(xyxy[0]),
+                "ymin": round(xyxy[1]),
+                "xmax": round(xyxy[2]),
+                "ymax": round(xyxy[3]),
+            })
+
+    return annotated_image, detections, elapsed
+
+
+# ==========================================================
+# LOAD MODEL
+# ==========================================================
+
+model = load_model()
+
 # ==========================================================
 # SIDEBAR
 # ==========================================================
@@ -316,26 +312,21 @@ with st.sidebar:
 
     st.markdown("<hr class='rd-divider'>", unsafe_allow_html=True)
 
-    st.markdown("**Backend Status**")
-    health = check_backend_health()
-
-    if health:
+    st.markdown("**Model Status**")
+    if model is not None:
         st.markdown(
-            f"""<div class="rd-status"><div class="rd-dot on"></div>
-            ONLINE · MODEL {"LOADED" if health.get("model_loaded") else "NOT LOADED"}</div>""",
+            """<div class="rd-status"><div class="rd-dot on"></div> MODEL LOADED</div>""",
             unsafe_allow_html=True,
         )
-        with st.expander("Raw response"):
-            st.json(health)
     else:
         st.markdown(
-            """<div class="rd-status"><div class="rd-dot off"></div> UNREACHABLE</div>""",
+            """<div class="rd-status"><div class="rd-dot off"></div> MODEL NOT FOUND</div>""",
             unsafe_allow_html=True,
         )
+        st.caption(f"Expected at: `models/best.pt`")
 
     st.markdown("<hr class='rd-divider'>", unsafe_allow_html=True)
-    st.caption("API BASE URL")
-    st.code(API_BASE_URL, language=None)
+    st.caption("RUNNING FULLY IN-APP — NO BACKEND")
 
 
 # ==========================================================
@@ -352,14 +343,21 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+if model is None:
+    st.error(
+        "Model file not found. Make sure `models/last.pt` is included in the "
+        "deployed app folder."
+    )
+
 uploaded_file = st.file_uploader(
     "Upload a road image",
     type=ALLOWED_IMAGE_TYPES,
     help=f"Max file size: {MAX_UPLOAD_SIZE_MB} MB",
     label_visibility="collapsed",
+    disabled=model is None,
 )
 
-if uploaded_file is not None:
+if uploaded_file is not None and model is not None:
     file_bytes = uploaded_file.getvalue()
     size_mb = len(file_bytes) / (1024 * 1024)
 
@@ -367,56 +365,49 @@ if uploaded_file is not None:
         st.error(f"File too large ({size_mb:.1f} MB). Max is {MAX_UPLOAD_SIZE_MB} MB.")
     else:
         col1, col2 = st.columns(2)
+        input_image = Image.open(BytesIO(file_bytes)).convert("RGB")
 
         with col1:
             st.markdown("<div class='rd-label'>Input</div>", unsafe_allow_html=True)
-            st.image(Image.open(BytesIO(file_bytes)), use_container_width=True)
+            st.image(input_image, use_container_width=True)
 
         detect_clicked = st.button("🔍  Detect Road Damage", type="primary", use_container_width=True)
 
         if detect_clicked:
             with st.spinner("Running YOLOv11 detection..."):
-                result = run_prediction(file_bytes, uploaded_file.name)
+                annotated_image, detections, elapsed = run_local_prediction(model, input_image)
 
-            if result and result.get("success"):
-                with col2:
-                    st.markdown("<div class='rd-label'>Detected</div>", unsafe_allow_html=True)
-                    result_filename = result.get("filename")
-                    img_bytes = None
-                    try:
-                        img_res = requests.get(f"{DOWNLOAD_ENDPOINT}/{result_filename}", timeout=30)
-                        if img_res.status_code == 200:
-                            img_bytes = img_res.content
-                            st.image(Image.open(BytesIO(img_bytes)), use_container_width=True)
-                    except requests.exceptions.RequestException:
-                        st.warning("Could not load the annotated result image.")
+            with col2:
+                st.markdown("<div class='rd-label'>Detected</div>", unsafe_allow_html=True)
+                st.image(annotated_image, use_container_width=True)
 
-                    if img_bytes:
-                        st.download_button(
-                            "⬇  Download Result",
-                            data=img_bytes,
-                            file_name=f"detected_{result_filename}",
-                            mime="image/jpeg",
-                            use_container_width=True,
-                        )
+                out_buffer = BytesIO()
+                annotated_image.save(out_buffer, format="JPEG")
+                st.download_button(
+                    "⬇  Download Result",
+                    data=out_buffer.getvalue(),
+                    file_name=f"detected_{uploaded_file.name}",
+                    mime="image/jpeg",
+                    use_container_width=True,
+                )
 
-                st.markdown("<hr class='rd-divider'>", unsafe_allow_html=True)
+            st.markdown("<hr class='rd-divider'>", unsafe_allow_html=True)
 
-                m1, m2 = st.columns(2)
-                m1.metric("Objects Detected", result.get("total_objects", 0))
-                m2.metric("Processing Time", f"{result.get('processing_time', 0)} s")
+            m1, m2 = st.columns(2)
+            m1.metric("Objects Detected", len(detections))
+            m2.metric("Processing Time", f"{elapsed} s")
 
-                detections = result.get("detections", [])
-                if detections:
-                    st.markdown('<div class="rd-label" style="margin-top:1rem;">Detections</div>', unsafe_allow_html=True)
-                    st.markdown(render_detections_table(detections), unsafe_allow_html=True)
-                else:
-                    st.info("No damage detected in this image.")
+            if detections:
+                st.markdown('<div class="rd-label" style="margin-top:1rem;">Detections</div>', unsafe_allow_html=True)
+                st.markdown(render_detections_table(detections), unsafe_allow_html=True)
+            else:
+                st.info("No damage detected in this image.")
 else:
-    st.markdown(
-        """<div class="rd-status"><div class="rd-dot on"></div> Upload an image to begin scanning</div>""",
-        unsafe_allow_html=True,
-    )
+    if model is not None:
+        st.markdown(
+            """<div class="rd-status"><div class="rd-dot on"></div> Upload an image to begin scanning</div>""",
+            unsafe_allow_html=True,
+        )
 
 st.markdown(
     f"<div class='rd-footer'>{APP_NAME} · {MODEL_NAME} · Built by Warda Ahad</div>",
