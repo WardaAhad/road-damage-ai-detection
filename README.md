@@ -1,55 +1,46 @@
-# 🚧 AI Road Damage Detection System
-
-<div align="center">
-
-<img src="frontend_streamlit/assets/logo.png" width="140">
-
 # AI Road Damage Detection System
 
-### 🚀 Deep Learning • YOLOv11 • FastAPI • Streamlit
+**Deep Learning | YOLOv11 | Streamlit**
 
-An End-to-End AI-powered Road Damage Detection System capable of detecting cracks, potholes, and road surface damage using the **RDD2022 Dataset** and **YOLOv11**.
+An AI-powered Road Damage Detection System that automatically detects and localizes different types of road damage from images using the RDD2022 Dataset and YOLOv11.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge\&logo=python\&logoColor=white)
 ![YOLO](https://img.shields.io/badge/YOLO-v11-red?style=for-the-badge)
 ![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-EE4C2C?style=for-the-badge\&logo=pytorch\&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge\&logo=fastapi\&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge\&logo=streamlit\&logoColor=white)
-![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge\&logo=opencv\&logoColor=white)
-
-</div>
+![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-5C3EE8?style=for-the-badge\&logo=opencv\&logoColor=white)
 
 ---
 
-# 📖 Overview
+# Overview
 
-Road damage inspection is traditionally performed manually, making it slow, expensive, and prone to human error.
+Road damage inspection is traditionally performed manually, making the process time-consuming and difficult to scale.
 
-This project presents an **AI-powered Road Damage Detection System** that automatically detects road damage using **YOLOv11**.
+This project presents an AI-powered Computer Vision application that automatically detects road damage from images using a trained YOLOv11 object detection model.
 
-The application provides a modern **Streamlit Dashboard** connected to a **FastAPI Backend**, allowing users to upload road images and instantly receive detection results.
-
----
-
-# ✨ Features
-
-* 🚧 Road Damage Detection
-* 🛣️ Crack Detection
-* 🕳️ Pothole Detection
-* 📍 Bounding Box Visualization
-* 📊 Confidence Scores
-* ⚡ FastAPI REST API
-* 🎨 Modern Streamlit Dashboard
-* 📈 Analytics Dashboard
-* 📜 Detection History
-* 📷 Image Upload
-* 🧠 YOLOv11 Deep Learning Model
-* 💻 Responsive UI
-* ☁️ Ready for Railway Deployment
+The application provides an interactive Streamlit interface where users can upload road images and view detected damage with bounding boxes and confidence scores.
 
 ---
 
-# 🎯 Damage Classes
+# Features
+
+* Road Damage Detection
+* Crack Detection
+* Pothole Detection
+* Detection of Multiple Road Damage Categories
+* Bounding Box Visualization
+* Confidence Score Analysis
+* Image Upload
+* YOLOv11 Object Detection
+* Interactive Streamlit Dashboard
+* Analytics Dashboard
+* Detection History
+* Annotated Detection Results
+* User-Friendly Interface
+
+---
+
+# Damage Classes
 
 | Class | Description        |
 | ----- | ------------------ |
@@ -60,30 +51,33 @@ The application provides a modern **Streamlit Dashboard** connected to a **FastA
 
 ---
 
-# 🏗️ System Architecture
+# System Workflow
 
 ```text
 Road Image
-      │
-      ▼
-Streamlit Frontend
-      │
-      ▼
-FastAPI REST API
-      │
-      ▼
+     |
+     v
+Image Upload
+     |
+     v
+Image Preprocessing
+     |
+     v
 YOLOv11 Detection Model
-      │
-      ▼
-Prediction Results
-      │
-      ▼
-Bounding Boxes + Confidence Score
+     |
+     v
+Damage Detection
+     |
+     v
+Bounding Boxes + Confidence Scores
+     |
+     v
+Detection Results
 ```
 
 ---
 
-# 🛠️ Technology Stack
+# Technology Stack
 
 ## Programming Language
 
@@ -93,15 +87,7 @@ Bounding Boxes + Confidence Score
 
 * YOLOv11
 * PyTorch
-
-## Backend
-
-* FastAPI
-* Uvicorn
-
-## Frontend
-
-* Streamlit
+* Ultralytics
 
 ## Computer Vision
 
@@ -117,247 +103,189 @@ Bounding Boxes + Confidence Score
 
 * Matplotlib
 
+## Web Application
+
+* Streamlit
+
+## Development Tools
+
+* Git
+* GitHub
+* VS Code
+* Jupyter Notebook
+
 ---
 
-# 📂 Project Structure
+# Project Structure
 
 ```text
-AI-Road-Damage-Detection-System
-│
-├── backend/
-│   ├── main.py
-│   ├── requirements.txt
-│   ├── best.pt
-│   ├── uploads/
-│   ├── outputs/
-│   ├── utils/
-│   │   ├── predictor.py
-│   │   ├── image_processing.py
-│   │   └── helper.py
-│   └── __pycache__/
-│
-├── frontend_streamlit/
+road-damage-ai-detection/
+|
+├── frontend/
 │   ├── app.py
-│   ├── config.py
-│   ├── requirements.txt
-│   │
 │   ├── assets/
-│   │   ├── logo.png
-│   │   ├── banner.png
-│   │   ├── favicon.png
-│   │   └── icons/
-│   │
-│   ├── components/
-│   │   ├── sidebar.py
-│   │   ├── navbar.py
-│   │   ├── footer.py
-│   │   ├── cards.py
-│   │   ├── charts.py
-│   │   ├── uploader.py
-│   │   ├── report.py
-│   │   └── api.py
-│   │
-│   ├── pages/
-│   │   ├── 1_Dashboard.py
-│   │   ├── 2_Detect_Damage.py
-│   │   ├── 3_Analytics.py
-│   │   ├── 4_History.py
-│   │   └── 5_About.py
-│   │
-│   ├── styles/
-│   │   ├── colors.py
-│   │   ├── theme.py
-│   │   └── custom.css
-│   │
-│   └── utils/
-│       ├── helper.py
-│       ├── analytics.py
-│       └── image_utils.py
+│   │   └── logo.png
+│   └── ...
 │
 ├── notebooks/
+│   └── ...
 │
-├── README.md
 ├── requirements.txt
+├── packages.txt
+├── README.md
 ├── .gitignore
 └── LICENSE
 ```
 
 ---
 
-# 📊 Dataset
+# Dataset
 
-**Dataset:** RDD2022 (Road Damage Detection 2022)
+## RDD2022 - Road Damage Detection 2022
 
-The dataset contains thousands of annotated road images collected from multiple countries and includes four road damage categories.
+The project is based on the Road Damage Detection 2022 (RDD2022) dataset.
+
+The dataset contains annotated road images collected from multiple countries and includes different types of road surface damage.
+
+The model is trained to detect the following road damage categories:
+
+* D00 - Longitudinal Crack
+* D10 - Transverse Crack
+* D20 - Alligator Crack
+* D40 - Pothole
 
 ---
 
-# 🚀 Installation
+# Installation
 
 ## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/AI-Road-Damage-Detection-System.git
-
-cd AI-Road-Damage-Detection-System
+git clone https://github.com/WardaAhad/road-damage-ai-detection.git
+cd road-damage-ai-detection
 ```
 
----
-
-# Backend
+## Install Dependencies
 
 ```bash
-cd backend
-
 pip install -r requirements.txt
-
-uvicorn main:app --reload
 ```
 
-Backend URL
-
-```
-http://127.0.0.1:8000
-```
-
-Swagger API
-
-```
-http://127.0.0.1:8000/docs
-```
-
----
-
-# Frontend
+## Run the Application
 
 ```bash
-cd frontend_streamlit
-
-pip install -r requirements.txt
-
-streamlit run app.py
+streamlit run frontend/app.py
 ```
 
-Frontend URL
+The application will be available at:
 
-```
+```text
 http://localhost:8501
 ```
 
 ---
 
-# API Endpoints
-
-## Home
-
-```
-GET /
-```
-
-## Health Check
-
-```
-GET /health
-```
-
-## Prediction
-
-```
-POST /predict
-```
-
-Returns
-
-* Total Damages
-* Detection Class
-* Confidence Score
-* Output Image
-
----
-
-# 📷 Application Screenshots
+# Application Sections
 
 ## Dashboard
 
-> Add Dashboard Screenshot
+Provides an overview of the Road Damage Detection System and project information.
 
----
+## Detect Damage
 
-## Detection
-
-> Add Detection Screenshot
-
----
+Upload a road image and use the trained YOLOv11 model to detect road damage.
 
 ## Analytics
 
-> Add Analytics Screenshot
-
----
+Provides visual insights and statistics related to detection results.
 
 ## History
 
-> Add History Screenshot
+Allows users to review previously processed detection results.
 
 ---
 
-# 🌍 Deployment
+# Application Screenshots
 
-### Backend
+## Dashboard
 
-* Railway
+Add Dashboard Screenshot here.
 
-### Frontend
+## Detection
 
-* Streamlit Community Cloud
+Add Detection Screenshot here.
+
+## Analytics
+
+Add Analytics Screenshot here.
+
+## History
+
+Add History Screenshot here.
 
 ---
 
-# 🔮 Future Improvements
+# Live Demo
 
-* Video Damage Detection
+Try the deployed Streamlit application:
+
+https://road-damage-ai-detection-zlum5wd8ojrh6toetrnlqb.streamlit.app/
+
+---
+
+# Project Objectives
+
+* Automate road damage detection using Computer Vision.
+* Apply YOLOv11 object detection to real-world road images.
+* Detect and localize multiple types of road damage.
+* Build an interactive AI application using Streamlit.
+* Visualize detection results using bounding boxes and confidence scores.
+* Gain practical experience in Deep Learning and Computer Vision.
+
+---
+
+# Future Improvements
+
+* Video Road Damage Detection
 * Live Camera Detection
 * GPS Integration
-* PDF Report Generation
-* User Authentication
-* Cloud Storage
-* Mobile Application
+* Automated PDF Reports
 * Damage Severity Analysis
-* Interactive Maps
+* Interactive Road Damage Maps
+* Mobile Application
+* Cloud-Based Storage
 * Real-Time Monitoring
 
 ---
 
-# 👩‍💻 Developer
+# Developer
 
 ## Warda Ahad
 
-**Bachelor of Artificial Intelligence**
+Bachelor of Artificial Intelligence
 
 The Islamia University of Bahawalpur
 
-Machine Learning Engineer Apprentice
+GitHub:
+
+https://github.com/WardaAhad
 
 ---
 
-# ⭐ Show Your Support
+# Show Your Support
 
-If you like this project, please give it a ⭐ on GitHub.
+If you find this project useful, consider giving the repository a star on GitHub.
 
-It motivates future development and helps others discover the project.
+Your support helps encourage further development and learning.
 
 ---
 
-# 📜 License
+# License
 
 This project is licensed under the MIT License.
 
 ---
 
-<div align="center">
+# AI for Safer Roads
 
-## 🚀 AI for Safer Roads
-
-### Made with ❤️ using Python, YOLOv11, FastAPI & Streamlit
-
-</div>
+Built with Python, YOLOv11, and Streamlit.
