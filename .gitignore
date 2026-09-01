@@ -17,11 +17,13 @@ wandb/
 
 # =========================================================
 # Root-level Training Model Checkpoints
-# (not needed for deployment — frontend/models/best.pt is
-# the one actually used by the app and is NOT ignored)
+# (not needed for deployment — leading slash makes this match
+# ONLY the root-level models/ folder, not frontend/models/ —
+# without it, Git would ignore frontend/models/best.pt too,
+# which breaks the deployed app)
 # =========================================================
 
-models/
+/models/
 
 
 # =========================================================
